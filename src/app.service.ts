@@ -5,7 +5,7 @@ import { UserService } from "@services";
 
 @Update()
 export class AppService {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
   @Start()
   async onStart(@Ctx() ctx: Context) {
     // Initialize custom session values
@@ -13,7 +13,7 @@ export class AppService {
     const userId = ctx.from.id;
     const user = await this.userService.getUser(userId);
 
-    if (!user) await this.userService.register({ tg_id: userId, scene_id: 1 });
+    if (!user) await this.userService.register({ tg_id: userId });
 
     await ctx.scene.enter(HOME_SCENE_ID);
   }

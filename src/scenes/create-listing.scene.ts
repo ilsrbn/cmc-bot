@@ -3,9 +3,18 @@ import { Scene, SceneEnter, Action, Hears } from "nestjs-telegraf";
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import { Context } from "@context";
 
-import { ListingService } from "@services";
+import { ListingService, UserService } from "@services";
 
 import { MY_LISTINGS_ID, CREATE_LISTING_ID } from "@/app.constants";
+import { Listing, NewListing } from "@/models/listing.model";
+
+type isNewT = {
+  isNew: boolean;
+};
+
+type CreateListingSceneState = {
+  listing: Listing & isNewT;
+};
 
 @Scene(CREATE_LISTING_ID)
 export class CreateListingScene {
@@ -24,7 +33,10 @@ export class CreateListingScene {
     ];
   }
 
-  constructor(private readonly listingService: ListingService) { }
+  constructor(
+    private readonly listingService: ListingService,
+    private userService: UserService
+  ) {}
 
   @SceneEnter()
   async onEnter(ctx: Context) {
@@ -37,25 +49,58 @@ export class CreateListingScene {
 
   @Hears(CreateListingScene.URL_REGEX)
   async onUrl(ctx: Context) {
-    const [url, _rest] = ctx.match;
-    let title: string;
+    const [url] = ctx.match;
+    const userId = ctx.from.id;
+    let listing;
     try {
-      title = await this.listingService.getListing(url);
+      listing = await this.listingService.getListing(url, userId);
     } catch (e) {
       console.warn(e);
-      title = "ERROR";
     }
-    if (!title) title = "ERROR";
-    console.log({ title });
-    await ctx.replyWithHTML(title);
+    if (!listing) {
+      await ctx.replyWithHTML("Such listing not found");
+      return await ctx.scene.enter(MY_LISTINGS_ID);
+    }
+    const message = this.makeListingMesssage(listing);
+    ctx.scene.state = { listing };
+    const buttons = [{ text: "Back", callback_data: MY_LISTINGS_ID }];
+    if (listing && !listing.inFavourite)
+      buttons.unshift({ text: "Add to favourites", callback_data: "YES" });
+    await ctx.replyWithHTML(message, {
+      reply_markup: {
+        inline_keyboard: [buttons],
+      },
+    });
   }
 
-  // @Action(HOME_SCENE_ID)
-  // async onHome(ctx: Context) {
-  //   await ctx.scene.enter(HOME_SCENE_ID);
-  // }
+  @Action("YES")
+  async onAddToFavourites(ctx: Context) {
+    const listing = ctx.scene.state as CreateListingSceneState;
+    const userId = ctx.from.id;
+
+    await this.listingService.addToFavourite(
+      listing.listing,
+      listing.listing.isNew,
+      userId
+    );
+    await ctx.replyWithHTML("Done!");
+    await ctx.scene.enter(MY_LISTINGS_ID);
+  }
+
   @Action(MY_LISTINGS_ID)
   async onCreate(ctx: Context) {
     await ctx.scene.enter(MY_LISTINGS_ID);
+  }
+
+  private makeListingMesssage(listing: NewListing) {
+    return (
+      `<b>${listing.title}</b>` +
+      "\n\n" +
+      `\tPrice: <b>$${listing.price}</b>` +
+      "\n" +
+      `\tHolders: <b>${listing.holders || "-"}</b>` +
+      "\n" +
+      `\tTotal Liquidity: <b>${listing.liquidity || "-"}</b>`
+    );
   }
 }

@@ -4,7 +4,7 @@ export interface ListingTable {
   id: Generated<number>;
   url: string;
   title: string;
-  total_liquidity: number;
+  liquidity: number;
   holders: number;
   price: number;
 }

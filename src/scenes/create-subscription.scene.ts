@@ -1,48 +1,42 @@
-import axios from "axios";
-import cheerio from "cheerio";
-import { Telegraf } from "telegraf";
-
-import {
-  Scene,
-  SceneEnter,
-  Action,
-  On,
-  Message,
-  InjectBot,
-  Command,
-} from "nestjs-telegraf";
+import { Scene, SceneEnter, Action } from "nestjs-telegraf";
 
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import { Context } from "@context";
-import { Pair } from "@/interfaces/pair.interface";
 
 import {
   HOME_SCENE_ID,
   CREATE_SUBSCRIPTION_SCENE_ID,
   ALL_SUBSCRIPTIONS_SCENE_ID,
-  BOT_NAME,
 } from "@/app.constants";
+import { FavouriteService } from "@/services";
+import { Listing } from "@/models/listing.model";
+
+type SceneState = {
+  listing_id: number;
+};
 
 @Scene(CREATE_SUBSCRIPTION_SCENE_ID)
 export class CreateSubscriptionScene {
-  constructor(
-    @InjectBot(BOT_NAME)
-    private readonly bot: Telegraf<Context>
-  ) { }
-  private statsSelector = ".dexscan-detail-stats-section > dl";
+  private favourites: Listing[];
+  private formatter = new Intl.ListFormat("en", {
+    style: "long",
+    type: "disjunction",
+  });
 
-  private greetingText(pairs: Array<Pair>): string {
-    return (
-      "Please, send link of the pair you want to keep track of" +
-      (pairs.length ? " or select one from previously tracked" : "")
-    );
+  constructor(private favouriteService: FavouriteService) { }
+
+  private get greetingText(): string {
+    return "Please, select listing from your Favourites you want to keep track of";
   }
 
   @SceneEnter()
   async onEnter(ctx: Context) {
-    await ctx.replyWithHTML(this.greetingText([]), {
+    this.favourites = await this.favouriteService.getUsersFavourites(
+      ctx.from.id
+    );
+    await ctx.replyWithHTML(this.greetingText, {
       reply_markup: {
-        inline_keyboard: this.getButtons([]),
+        inline_keyboard: this.buttons,
       },
     });
   }
@@ -52,9 +46,13 @@ export class CreateSubscriptionScene {
     await ctx.scene.enter(HOME_SCENE_ID);
   }
 
-  private getButtons(pairs: Array<Pair>): InlineKeyboardButton[][] {
+  private get buttons(): InlineKeyboardButton[][] {
+    const pairs = this.favourites;
     return [
-      pairs.map((pair) => ({ text: pair.pair, callback_data: pair.pair })),
+      pairs.map((pair) => ({
+        text: pair.title,
+        callback_data: pair.id.toString(),
+      })),
       [ALL_SUBSCRIPTIONS_SCENE_ID, HOME_SCENE_ID].map((button) => ({
         text: button,
         callback_data: button,
@@ -62,32 +60,51 @@ export class CreateSubscriptionScene {
     ];
   }
 
-  @Command("start")
-  async onStart(ctx: Context) {
-    await ctx.scene.enter(HOME_SCENE_ID);
+  @Action(/[0-9]+/)
+  async onSelectedPair(ctx: Context) {
+    const [listing_id] = ctx.match;
+    (ctx.scene.state as SceneState).listing_id = listing_id;
+    ctx.scene.state;
+    const listingIdx = this.favourites.findIndex((el) => el.id === +listing_id);
+    const found = this.favourites[listingIdx] || null;
+    if (found)
+      await ctx.replyWithHTML(this.makeListingMesssage(found), {
+        reply_markup: {
+          inline_keyboard: [this.makeSubscriptionButtons(found)],
+        },
+      });
   }
 
-  @On("text")
-  async handleLink(@Message("text") text: string) {
-    // const indexOfPair = ctx.session.pairs.findIndex(
-    // (pair) => pair.link === text.trim()
-    // );
-
-    // if (indexOfPair !== -1) {
-    // console.log("Me");
-    // }
-
-    const searchResults = text.search("currencies");
-    if (searchResults !== -1) {
-    }
-    const page = await axios.get(text.trim());
-    const $ = cheerio.load(page.data);
-    const title = $("h1.dexscan-pair-source-pair").eq(0).text();
-    const price = $(".priceSection-core > div > span > span").text();
-    const totalLiquidity = $(
-      this.statsSelector + " div:first-child dd span"
-    ).text();
-    console.log(this.bot.context);
-    return `${title}\n\n\bPrice: ${price}\n\bTotal liquidity: ${totalLiquidity}`;
+  private makeListingMesssage(listing: Listing) {
+    const availableSubscriptionIndicators = ["price"];
+    if (listing.holders) availableSubscriptionIndicators.push("holders");
+    if (listing.liquidity) availableSubscriptionIndicators.push("liquidity");
+    return (
+      "Selected listing is:\n\n" +
+      `<b>${listing.title}</b>` +
+      "\n\n" +
+      `\tPrice: <b>$${listing.price}</b>` +
+      "\n" +
+      `\tHolders: <b>${listing.holders || "-"}</b>` +
+      "\n" +
+      `\tTotal Liquidity: <b>${listing.liquidity || "-"}</b>` +
+      `\n\n You can subscribe on the: ${this.formatter.format(
+        availableSubscriptionIndicators
+      )}.`
+    );
   }
+  private makeSubscriptionButtons(listing: Listing) {
+    const availableSubscriptionIndicators = ["price"];
+    if (listing.holders) availableSubscriptionIndicators.push("holders");
+    if (listing.liquidity) availableSubscriptionIndicators.push("liquidity");
+
+    return availableSubscriptionIndicators.map((el) => ({
+      text: `Select ${el}`,
+      callback_data: el,
+    }));
+  }
+
+  // TODO: handle selection of Indicator type
+  @Action(["price", "holders", "liquidity"])
+  async onSelectType(ctx: Context) { }
 }

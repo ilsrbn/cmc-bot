@@ -1,7 +1,6 @@
-import { Insertable, Selectable, Updateable, Generated } from "kysely";
+import { Insertable, Selectable, Updateable } from "kysely";
 
 export interface SubscriptionTable {
-  id: Generated<number>;
   user_id: number;
   listing_id: number;
   indicator_id: number;

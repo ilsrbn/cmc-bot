@@ -5,6 +5,13 @@ import { NewListing } from "@/models/listing.model";
 
 @Injectable()
 export class ListingRepository {
+  async getListingByUrl(url: string) {
+    return await db
+      .selectFrom("listing")
+      .where("url", "=", url)
+      .selectAll()
+      .executeTakeFirstOrThrow();
+  }
   async getListingById(id: number) {
     return await db
       .selectFrom("listing")

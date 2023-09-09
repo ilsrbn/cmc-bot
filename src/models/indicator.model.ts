@@ -5,7 +5,6 @@ export interface IndicatorTable {
   type: "total_liquidity" | "holders" | "price";
   target: number;
   initial: number;
-  subscription_id: number;
 }
 
 export type Indicator = Selectable<IndicatorTable>;

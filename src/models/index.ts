@@ -5,12 +5,14 @@ import { UserTable } from "./user.model";
 import { IndicatorTable } from "./indicator.model";
 import { ListingTable } from "./listing.model";
 import { SubscriptionTable } from "./subscription.model";
+import { FavouriteTable } from "./favourite.model";
 
 interface Database {
   user: UserTable;
   indicator: IndicatorTable;
   listing: ListingTable;
   subscription: SubscriptionTable;
+  favourite: FavouriteTable;
 }
 
 const dialect = new SqliteDialect({

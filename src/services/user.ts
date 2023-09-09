@@ -3,12 +3,11 @@ import { Injectable, Inject } from "@nestjs/common";
 
 class registerDTO {
   tg_id: number;
-  scene_id: number;
 }
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(private readonly userRepository: UserRepository) {}
 
   async register(registerForm: registerDTO) {
     return await this.userRepository.createUser({ ...registerForm });

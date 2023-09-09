@@ -14,10 +14,6 @@ export class UserRepository {
   }
 
   async createUser(user: NewUser) {
-    return await db
-      .insertInto("user")
-      .values(user)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    return await db.insertInto("user").values(user).returningAll().execute();
   }
 }

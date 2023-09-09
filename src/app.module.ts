@@ -11,6 +11,7 @@ import {
   UserRepository,
   ListingRepository,
   SubscriptionRepository,
+  FavouriteRepository,
 } from "@repos";
 
 import {
@@ -18,15 +19,22 @@ import {
   SubscriptionService,
   ListingService,
   IndicatorService,
+  FavouriteService,
 } from "@services";
+import { ParserService } from "@services/parser/index";
+import { CurrencyParser } from "@services/parser/currency";
+import { DexScanParser } from "@/services/parser/dexscan";
 
 import {
   HomeScene,
   MyListingsScene,
   CreateListingScene,
+  ViewListingScene,
   AllSubscriptionsScene,
   CreateSubscriptionScene,
 } from "@scenes";
+
+import { UrlUtils } from "@utils";
 
 import "dotenv/config";
 
@@ -46,17 +54,26 @@ import "dotenv/config";
     ListingRepository,
     SubscriptionRepository,
     UserRepository,
+    FavouriteRepository,
 
     UserService,
     SubscriptionService,
     ListingService,
     IndicatorService,
+    ParserService,
+    FavouriteService,
+
+    CurrencyParser,
+    DexScanParser,
 
     HomeScene,
     AllSubscriptionsScene,
     CreateSubscriptionScene,
     MyListingsScene,
+    ViewListingScene,
     CreateListingScene,
+
+    UrlUtils,
   ],
 })
-export class AppModule { }
+export class AppModule {}
