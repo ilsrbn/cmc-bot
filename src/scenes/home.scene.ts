@@ -10,11 +10,11 @@ import { Context } from "@context";
 
 @Scene(HOME_SCENE_ID)
 export class HomeScene {
-  private buttons: Array<InlineKeyboardButton> = [
+  private buttons: Array<Array<InlineKeyboardButton>> = [
     MY_LISTINGS_ID,
     ALL_SUBSCRIPTIONS_SCENE_ID,
     CREATE_SUBSCRIPTION_SCENE_ID,
-  ].map((button) => ({ text: button, callback_data: button }));
+  ].map((button) => [{ text: button, callback_data: button }]);
 
   private greetingText = `<b>${HOME_SCENE_ID}</b>\n\nWhere will we go?`;
 
@@ -22,7 +22,7 @@ export class HomeScene {
   async onEnter(ctx: Context) {
     await ctx.replyWithHTML(this.greetingText, {
       reply_markup: {
-        inline_keyboard: [this.buttons],
+        inline_keyboard: this.buttons,
       },
     });
   }

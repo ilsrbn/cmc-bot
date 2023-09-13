@@ -58,16 +58,25 @@ export class CreateSubscriptionScene {
 
   private get buttons(): InlineKeyboardButton[][] {
     const pairs = this.favourites;
-    return [
-      pairs.map((pair) => ({
-        text: pair.title,
+    const pairsButtons = pairs.map((pair) => [
+      {
+        text: "☑️ " + pair.title,
         callback_data: pair.id.toString(),
-      })),
+      },
+    ]);
+
+    return [
+      ...pairsButtons,
       [ALL_SUBSCRIPTIONS_SCENE_ID, HOME_SCENE_ID].map((button) => ({
         text: button,
         callback_data: button,
       })),
     ];
+  }
+
+  @Action(ALL_SUBSCRIPTIONS_SCENE_ID)
+  async onGoBack(ctx: Context) {
+    await ctx.scene.enter(ALL_SUBSCRIPTIONS_SCENE_ID);
   }
 
   @Action(/[0-9]+/)

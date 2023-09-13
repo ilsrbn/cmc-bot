@@ -31,6 +31,7 @@ import {
   ViewListingScene,
   AllSubscriptionsScene,
   CreateSubscriptionScene,
+  ViewSubscriotionbScene,
 } from "@scenes";
 
 import { UrlUtils } from "@utils";
@@ -67,6 +68,7 @@ import "dotenv/config";
     HomeScene,
     AllSubscriptionsScene,
     CreateSubscriptionScene,
+    ViewSubscriotionbScene,
     MyListingsScene,
     ViewListingScene,
     CreateListingScene,

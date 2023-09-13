@@ -1,8 +1,8 @@
-import { SubscriptionRepository } from "@/repositories/subscription";
+import * as _ from "lodash";
 import { Injectable, Logger } from "@nestjs/common";
 
-import * as _ from "lodash";
-import { initial } from "lodash";
+import { SubscriptionRepository } from "@/repositories/subscription";
+
 import { ListingService } from "./listing";
 
 export class CreateSubscriptionDTO {
@@ -23,6 +23,10 @@ export class SubscriptionService {
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly listingService: ListingService
   ) { }
+
+  async getSubscriptionById(id: number) {
+    return await this.subscriptionRepository.getSubscriptionById(id);
+  }
 
   async getAllSubscription(userId: number) {
     return await this.subscriptionRepository.getUserSubscriptions(userId);
@@ -45,7 +49,7 @@ export class SubscriptionService {
 
   async requestUpdate(id: number) {
     this.logger.debug(``);
-    this.logger.debug(`REQUESTED UPDATE OF SUBSCRIPTION WITH ID "${id}"`);
+    this.logger.debug(`REQUESTED UPDATE CHECK OF SUBSCRIPTION WITH ID "${id}"`);
     const subscription = await this.subscriptionRepository.getSubscriptionById(
       id
     );

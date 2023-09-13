@@ -26,8 +26,8 @@ export class ViewListingScene {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "Delete", callback_data: "YES" },
-            { text: "Go Back", callback_data: MY_LISTINGS_ID },
+            { text: "🗑 Delete", callback_data: "YES" },
+            { text: "🔙 Go Back", callback_data: MY_LISTINGS_ID },
           ],
         ],
       },
@@ -37,15 +37,15 @@ export class ViewListingScene {
   @Action("YES")
   async onDelete(ctx: Context) {
     (ctx.scene.state as SceneState).deletion = true;
-    return await ctx.replyWithHTML(
+    await ctx.replyWithHTML(
       "Are you sure you want to delete the listing from your Favourites?",
       {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: "Yes, delete listing.", callback_data: "CONFIRM" },
+              { text: "🗑 Yes, delete listing.", callback_data: "CONFIRM" },
               {
-                text: "No, I don't want to delete it.",
+                text: "🔙 No, I don't want to delete it.",
                 callback_data: "CANCEL",
               },
             ],

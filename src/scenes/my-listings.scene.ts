@@ -7,17 +7,13 @@ import {
   VIEW_LISTING_ID,
 } from "@/app.constants";
 import { Context } from "@context";
-import { FavouriteService, SubscriptionService } from "@services";
+import { FavouriteService } from "@services";
 
-import { Pair } from "@/interfaces/pair.interface";
 import { Listing } from "@/models/listing.model";
 
 @Scene(MY_LISTINGS_ID)
 export class MyListingsScene {
-  constructor(
-    private readonly subcriptionService: SubscriptionService,
-    private favouriteService: FavouriteService
-  ) {}
+  constructor(private favouriteService: FavouriteService) { }
   private greetingText(pairs: Array<Listing>): string {
     if (!pairs.length)
       return `<b>There is no listings yet</b>\n\n<i>You can create first one with <b>"${CREATE_LISTING_ID}"</b> Button</i>`;
@@ -40,13 +36,14 @@ export class MyListingsScene {
 
   private buttons(favourites: Listing[]): InlineKeyboardButton[][] {
     if (!favourites.length) return [this.baseButtons()];
-    return [
-      favourites.map((pair) => ({
+
+    const listings: InlineKeyboardButton[][] = favourites.map((pair) => [
+      {
         text: pair.title,
         callback_data: pair.id.toString(),
-      })),
-      this.baseButtons(),
-    ];
+      },
+    ]);
+    return [...listings, this.baseButtons()];
   }
 
   @SceneEnter()

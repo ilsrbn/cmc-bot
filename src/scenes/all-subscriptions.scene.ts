@@ -9,6 +9,7 @@ import {
   HOME_SCENE_ID,
   ALL_SUBSCRIPTIONS_SCENE_ID,
   CREATE_SUBSCRIPTION_SCENE_ID,
+  VIEW_SUBSCRIPTION_ID,
 } from "@/app.constants";
 import { SubscriptionWithListing } from "@/models/subscription.model";
 
@@ -42,13 +43,14 @@ export class AllSubscriptionsScene {
     pairs: Array<SubscriptionWithListing>
   ): InlineKeyboardButton[][] {
     if (!pairs.length) return [this.baseButtons()];
-    return [
-      pairs.map((pair, i) => ({
-        text: i + 1 + ". " + pair.title + "-" + pair.type,
+    const subscriptions: InlineKeyboardButton[][] = pairs.map((pair, i) => [
+      {
+        text: "✏️" + " " + (i + 1) + ". " + pair.title + " - " + pair.type,
         callback_data: pair.id.toString(),
-      })),
-      this.baseButtons(),
-    ];
+      },
+    ]);
+    subscriptions.push(this.baseButtons());
+    return subscriptions;
   }
 
   @SceneEnter()
@@ -71,5 +73,11 @@ export class AllSubscriptionsScene {
   @Action(CREATE_SUBSCRIPTION_SCENE_ID)
   async onCreate(ctx: Context) {
     await ctx.scene.enter(CREATE_SUBSCRIPTION_SCENE_ID);
+  }
+
+  @Action(/[0-9]+/)
+  async onView(ctx: Context) {
+    const [id] = ctx.match;
+    return await ctx.scene.enter(VIEW_SUBSCRIPTION_ID, { id });
   }
 }
