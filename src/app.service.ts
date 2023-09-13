@@ -47,7 +47,7 @@ export class AppService {
           );
 
           if (needToNotify) {
-            const message = `<b>NOTIFICATION</b>\nYour subscription for "${subscription.title}" has reached value <b>${subscription.target}</b>!\n\n<i>Subscription was deleted!</i>`;
+            const message = `NOTIFICATION\nYour subscription for "${subscription.title}" has reached value ${subscription.target}!\n\nSubscription was deleted!`;
             await this.bot.telegram.sendMessage(subscription.user_id, message);
             await this.subscriptionsService.delete(subscription.id);
           }
