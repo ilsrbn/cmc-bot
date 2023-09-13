@@ -34,14 +34,18 @@ export class AppService {
       this.logger.log("");
       this.logger.log("CRON JOB STARTED");
       this.logger.log("");
+
       const grouppedByListing =
         await this.subscriptionsService.getGrouppedSubscriptions();
+
       for (const key in grouppedByListing) {
         await this.listingService.requestUpdate(parseInt(key));
+
         for (const subscription of grouppedByListing[key]) {
           const needToNotify = await this.subscriptionsService.requestUpdate(
             subscription.id
           );
+
           if (needToNotify) {
             const message = `ATTENTION: Your subscription on "${subscription.title}" has reached value ${subscription.target}!`;
             await this.bot.telegram.sendMessage(subscription.user_id, message);

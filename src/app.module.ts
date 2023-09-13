@@ -8,7 +8,6 @@ import { sessionMiddleware } from "./middleware/session.middleware";
 import { BOT_NAME } from "./app.constants";
 
 import {
-  IndicatorRepository,
   UserRepository,
   ListingRepository,
   SubscriptionRepository,
@@ -19,7 +18,6 @@ import {
   UserService,
   SubscriptionService,
   ListingService,
-  IndicatorService,
   FavouriteService,
 } from "@services";
 import { ParserService } from "@services/parser/index";
@@ -52,7 +50,6 @@ import "dotenv/config";
   providers: [
     AppService,
 
-    IndicatorRepository,
     ListingRepository,
     SubscriptionRepository,
     UserRepository,
@@ -61,7 +58,6 @@ import "dotenv/config";
     UserService,
     SubscriptionService,
     ListingService,
-    IndicatorService,
     ParserService,
     FavouriteService,
 
