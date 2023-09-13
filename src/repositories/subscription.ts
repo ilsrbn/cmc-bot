@@ -5,11 +5,13 @@ import { NewSubscription } from "@/models/subscription.model";
 
 @Injectable()
 export class SubscriptionRepository {
+  async deleteById(id: number) {
+    return await db.deleteFrom("subscription").where("id", "=", id).execute();
+  }
   async createSubscription(subscription: NewSubscription) {
     return await db
       .insertInto("subscription")
       .values(subscription)
-      .returningAll()
       .executeTakeFirstOrThrow();
   }
 
@@ -18,20 +20,60 @@ export class SubscriptionRepository {
       .selectFrom("subscription")
       .where("user_id", "=", userId)
       .leftJoin("listing", "listing.id", "subscription.listing_id")
-      .leftJoin("indicator", "indicator.id", "subscription.indicator_id")
       .select([
-        "listing_id",
-        "indicator_id",
+        "subscription.id as id",
+        "listing_id as listing_id",
         "user_id",
+        "type",
+        "initial",
+        "target",
         "listing.url",
         "listing.title",
         "listing.liquidity",
         "listing.holders",
         "listing.price",
-        "indicator.type as indicator_type",
-        "indicator.initial",
-        "indicator.target",
       ])
       .execute();
+  }
+
+  async getAllSubscrtiptions() {
+    return await db
+      .selectFrom("subscription")
+      .leftJoin("listing", "listing.id", "subscription.listing_id")
+      .select([
+        "subscription.id as id",
+        "listing_id as listing_id",
+        "user_id",
+        "type",
+        "initial",
+        "target",
+        "listing.url",
+        "listing.title",
+        "listing.liquidity",
+        "listing.holders",
+        "listing.price",
+      ])
+      .execute();
+  }
+
+  async getSubscriptionById(id: number) {
+    return await db
+      .selectFrom("subscription")
+      .where("subscription.id", "=", id)
+      .leftJoin("listing", "listing.id", "subscription.listing_id")
+      .select([
+        "subscription.id as id",
+        "listing_id as listing_id",
+        "user_id",
+        "type",
+        "initial",
+        "target",
+        "listing.url",
+        "listing.title",
+        "listing.liquidity",
+        "listing.holders",
+        "listing.price",
+      ])
+      .executeTakeFirstOrThrow();
   }
 }

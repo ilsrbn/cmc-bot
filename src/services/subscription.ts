@@ -1,17 +1,28 @@
 import { SubscriptionRepository } from "@/repositories/subscription";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
-class CreateSubscriptionDTO {
-  user_id: number;
-  listing_id: number;
-  indicator_id: number;
+import * as _ from "lodash";
+import { initial } from "lodash";
+import { ListingService } from "./listing";
+
+export class CreateSubscriptionDTO {
+  constructor(
+    public user_id: number,
+    public listing_id: number,
+    public initial: number,
+    public target: number,
+    public type: "price" | "holders" | "liquidity"
+  ) { }
 }
 
 @Injectable()
 export class SubscriptionService {
+  private readonly logger = new Logger(SubscriptionService.name);
+
   constructor(
-    private readonly subscriptionRepository: SubscriptionRepository
-  ) {}
+    private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly listingService: ListingService
+  ) { }
 
   async getAllSubscription(userId: number) {
     return await this.subscriptionRepository.getUserSubscriptions(userId);
@@ -21,5 +32,40 @@ export class SubscriptionService {
     return await this.subscriptionRepository.createSubscription({
       ...createDTO,
     });
+  }
+
+  async getAllSubscriptions() {
+    return await this.subscriptionRepository.getAllSubscrtiptions();
+  }
+
+  async getGrouppedSubscriptions() {
+    const subscriptions = await this.getAllSubscriptions();
+    return _.groupBy(subscriptions, (subscription) => subscription.listing_id);
+  }
+
+  async requestUpdate(id: number) {
+    this.logger.debug(``);
+    this.logger.debug(`REQUESTED UPDATE OF SUBSCRIPTION WITH ID "${id}"`);
+    const subscription = await this.subscriptionRepository.getSubscriptionById(
+      id
+    );
+
+    this.logger.verbose("DONE");
+    const listing = await this.listingService.getListingById(
+      subscription.listing_id
+    );
+
+    const initial = subscription.initial;
+    const current = listing[subscription.type];
+    const target = subscription.target;
+
+    return target > initial ? current >= target : current <= target;
+  }
+
+  async delete(id: number) {
+    this.logger.debug(``);
+    this.logger.debug(`REQUESTED DELETE OF SUBSCRIPTION WITH ID "${id}"`);
+    await this.subscriptionRepository.deleteById(id);
+    this.logger.verbose("DONE");
   }
 }

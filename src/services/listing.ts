@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
-import { Listing } from "@models/listing.model";
+import { Listing, UpdatedListing } from "@models/listing.model";
 import { ListingRepository } from "@repos";
 import { UrlUtils } from "@/utils";
 
@@ -15,15 +15,21 @@ export class ListingService {
     dexscan: "dexscan",
   };
 
+  private readonly logger = new Logger(ListingService.name);
+
   constructor(
     private listingRepo: ListingRepository,
     private parserService: ParserService,
     private favouriteService: FavouriteService,
 
     private urlUtils: UrlUtils
-  ) {}
+  ) { }
 
-  async getListing(url: string, userId: number) {
+  async getListingById(id: number) {
+    return await this.listingRepo.getListingById(id);
+  }
+
+  async getListing(url: string, userId = -1, forceParse = false) {
     const listingType = this.getListingType(url);
     if (!listingType)
       throw new Error(
@@ -33,7 +39,7 @@ export class ListingService {
     url = this.urlUtils.toEnglish(url);
 
     const listing: Listing = await this.getExistingListing(url);
-    if (listing) {
+    if (!forceParse && listing) {
       const inFavourite = await this.favouriteService.getFavourite(
         userId,
         listing.id
@@ -61,6 +67,26 @@ export class ListingService {
         liquidity: listing.liquidity,
       });
     return await this.favouriteService.addToFavourite(userId, listing.id);
+  }
+
+  async requestUpdate(id: number) {
+    const oldListing = await this.listingRepo.getListingById(id);
+    const parsedListing = await this.getListing(oldListing.url, -1, true);
+    const payload = {
+      id,
+      price: parsedListing.price,
+      holders: parsedListing.holders,
+      liquidity: parsedListing.liquidity,
+      title: parsedListing.title,
+    };
+    this.logger.debug(``);
+    this.logger.debug(`REQUESTED UPDATE OF LISTING WITH ID "${payload.id}"`);
+    await this.updateListing(payload);
+    this.logger.verbose(`UPDATED!`);
+  }
+
+  async updateListing(listing: UpdatedListing) {
+    return await this.listingRepo.updateListing(listing);
   }
 
   private getListingType(url: string): ListingType {

@@ -42,5 +42,5 @@ export abstract class AbstractParser {
   protected abstract getLiquidity($: CheerioAPI): number | null;
 
   // Can be optioanaly implemented in subclasses
-  protected afterPageLoad($: CheerioAPI) {}
+  protected afterPageLoad($: CheerioAPI) { }
 }

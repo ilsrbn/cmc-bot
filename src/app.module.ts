@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { TelegrafModule } from "nestjs-telegraf";
+import { ScheduleModule } from "@nestjs/schedule";
 
 import { AppService } from "./app.service";
 
@@ -45,6 +46,7 @@ import "dotenv/config";
       token: process.env.BOT_TOKEN,
       middlewares: [sessionMiddleware],
     }),
+    ScheduleModule.forRoot(),
   ],
 
   providers: [
@@ -76,4 +78,4 @@ import "dotenv/config";
     UrlUtils,
   ],
 })
-export class AppModule {}
+export class AppModule { }

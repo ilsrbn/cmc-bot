@@ -1,4 +1,4 @@
-import { Scene, SceneEnter, Action } from "nestjs-telegraf";
+import { Scene, SceneEnter, Action, Hears } from "nestjs-telegraf";
 
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import { Context } from "@context";
@@ -8,12 +8,19 @@ import {
   CREATE_SUBSCRIPTION_SCENE_ID,
   ALL_SUBSCRIPTIONS_SCENE_ID,
 } from "@/app.constants";
-import { FavouriteService } from "@/services";
+import {
+  CreateSubscriptionDTO,
+  FavouriteService,
+  SubscriptionService,
+} from "@/services";
 import { Listing } from "@/models/listing.model";
 
 type SceneState = {
   listing_id: number;
+  selected_type: "price" | "holders" | "liquidity";
 };
+
+const IntegetOrFloatRegexp = /^[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?$/;
 
 @Scene(CREATE_SUBSCRIPTION_SCENE_ID)
 export class CreateSubscriptionScene {
@@ -23,7 +30,10 @@ export class CreateSubscriptionScene {
     type: "disjunction",
   });
 
-  constructor(private favouriteService: FavouriteService) { }
+  constructor(
+    private favouriteService: FavouriteService,
+    private subscriptionService: SubscriptionService
+  ) { }
 
   private get greetingText(): string {
     return "Please, select listing from your Favourites you want to keep track of";
@@ -62,11 +72,8 @@ export class CreateSubscriptionScene {
 
   @Action(/[0-9]+/)
   async onSelectedPair(ctx: Context) {
-    const [listing_id] = ctx.match;
-    (ctx.scene.state as SceneState).listing_id = listing_id;
-    ctx.scene.state;
-    const listingIdx = this.favourites.findIndex((el) => el.id === +listing_id);
-    const found = this.favourites[listingIdx] || null;
+    this.setListingId(ctx);
+    const found = this.getListing(ctx);
     if (found)
       await ctx.replyWithHTML(this.makeListingMesssage(found), {
         reply_markup: {
@@ -104,7 +111,59 @@ export class CreateSubscriptionScene {
     }));
   }
 
-  // TODO: handle selection of Indicator type
   @Action(["price", "holders", "liquidity"])
-  async onSelectType(ctx: Context) { }
+  async onSelectType(ctx: Context) {
+    this.setSelectedType(ctx);
+    await ctx.replyWithHTML(
+      "Enter exact value you want to subscribe on:\n\n<i>Format: number with 'dot' symbol (.) as decimal separator</i>"
+    );
+  }
+
+  @Hears(IntegetOrFloatRegexp)
+  async onEnterValue(ctx: Context) {
+    if (!this.getSelectedType(ctx)) return null;
+
+    const target = parseFloat(ctx.match[0]);
+    if (!target) return null;
+
+    const newSubscriptionDTO = new CreateSubscriptionDTO(
+      ctx.from.id,
+      this.getListingId(ctx),
+      this.getListing(ctx)[this.getSelectedType(ctx)],
+      target,
+      this.getSelectedType(ctx)
+    );
+
+    await this.subscriptionService.createSubscription(newSubscriptionDTO);
+
+    await ctx.scene.enter(ALL_SUBSCRIPTIONS_SCENE_ID);
+  }
+
+  private getSelectedType(
+    ctx: Context
+  ): "price" | "holders" | "liquidity" | null {
+    return (ctx.scene.state as SceneState).selected_type;
+  }
+
+  private setSelectedType(ctx: Context): "price" | "holders" | "liquidity" {
+    const [selectedType] = ctx.match;
+    (ctx.scene.state as SceneState).selected_type = selectedType;
+    return selectedType;
+  }
+
+  private getListingId(ctx: Context): number | null {
+    return (ctx.scene.state as SceneState).listing_id;
+  }
+
+  private setListingId(ctx: Context): number {
+    const [listingId] = ctx.match;
+    (ctx.scene.state as SceneState).listing_id = listingId;
+    return listingId;
+  }
+
+  private getListing(ctx: Context) {
+    const listingId = this.getListingId(ctx);
+    const listingIdx = this.favourites?.findIndex((el) => el.id === +listingId);
+    return this.favourites[listingIdx] || null;
+  }
 }

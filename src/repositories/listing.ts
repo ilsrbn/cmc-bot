@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
 import { db } from "@/models";
-import { NewListing } from "@/models/listing.model";
+import { NewListing, UpdatedListing } from "@/models/listing.model";
 
 @Injectable()
 export class ListingRepository {
@@ -29,6 +29,19 @@ export class ListingRepository {
       .insertInto("listing")
       .values(listing)
       .returningAll()
+      .executeTakeFirstOrThrow();
+  }
+
+  async updateListing(listing: UpdatedListing) {
+    return await db
+      .updateTable("listing")
+      .set({
+        price: listing.price,
+        holders: listing.holders,
+        liquidity: listing.liquidity,
+        title: listing.title,
+      })
+      .where("id", "=", listing.id)
       .executeTakeFirstOrThrow();
   }
 }
