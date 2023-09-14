@@ -5,10 +5,10 @@ import { AbstractParser } from "./abstract";
 @Injectable()
 export class DexScanParser extends AbstractParser {
   protected getTitle($: CheerioAPI): string {
-    const first = $(
-      ".dex-pairs-name-text > .base-token > span:first-child"
-    ).text();
-    const last = $(".dex-pairs-name-text > .quote-token > a").text();
+    const title = $("head title").text().split(" ")[0];
+
+    const [first, last] = title.split("/");
+
     return `${first} / ${last}`;
   }
 
@@ -17,19 +17,19 @@ export class DexScanParser extends AbstractParser {
       $(".dex-price > div:nth-child(2) > span > span")
         .text()
         .replace("$", "")
-        .replace(",", "")
+        .replace(/,/g, "")
     );
   }
 
   protected getLiquidity($: CheerioAPI): number {
     return parseFloat(
-      $(".box-number").first().text().replace("$", "").replace(",", "")
+      $(".box-number").first().text().replace("$", "").replace(/,/g, "")
     );
   }
 
   protected getHolders($: CheerioAPI): number {
     return parseFloat(
-      $(".box-number").last().text().replace("$", "").replace(",", "")
+      $(".box-number").last().text().replace("$", "").replace(/,/g, "")
     );
   }
 }
