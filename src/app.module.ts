@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { TelegrafModule } from "nestjs-telegraf";
 import { ScheduleModule } from "@nestjs/schedule";
 
+import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 
 import { sessionMiddleware } from "./middleware/session.middleware";
@@ -48,6 +49,8 @@ import "dotenv/config";
     ScheduleModule.forRoot(),
   ],
 
+  controllers: [AppController],
+
   providers: [
     AppService,
 
@@ -76,4 +79,4 @@ import "dotenv/config";
     UrlUtils,
   ],
 })
-export class AppModule { }
+export class AppModule {}

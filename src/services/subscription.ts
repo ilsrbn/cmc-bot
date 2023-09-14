@@ -12,7 +12,7 @@ export class CreateSubscriptionDTO {
     public initial: number,
     public target: number,
     public type: "price" | "holders" | "liquidity"
-  ) { }
+  ) {}
 }
 
 @Injectable()
@@ -22,7 +22,7 @@ export class SubscriptionService {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly listingService: ListingService
-  ) { }
+  ) {}
 
   async getSubscriptionById(id: number) {
     return await this.subscriptionRepository.getSubscriptionById(id);
@@ -40,6 +40,11 @@ export class SubscriptionService {
 
   async getAllSubscriptions() {
     return await this.subscriptionRepository.getAllSubscrtiptions();
+  }
+
+  async getGrouupedByUserSubscriptions() {
+    const subscriptions = await this.getAllSubscriptions();
+    return _.groupBy(subscriptions, (subscription) => subscription.user_id);
   }
 
   async getGrouppedSubscriptions() {
