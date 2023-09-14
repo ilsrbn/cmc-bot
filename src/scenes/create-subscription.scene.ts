@@ -33,7 +33,7 @@ export class CreateSubscriptionScene {
   constructor(
     private favouriteService: FavouriteService,
     private subscriptionService: SubscriptionService
-  ) { }
+  ) {}
 
   private get greetingText(): string {
     return "Please, select listing from your Favourites you want to keep track of";
@@ -173,6 +173,6 @@ export class CreateSubscriptionScene {
   private getListing(ctx: Context) {
     const listingId = this.getListingId(ctx);
     const listingIdx = this.favourites?.findIndex((el) => el.id === +listingId);
-    return this.favourites[listingIdx] || null;
+    return (this.favourites && this.favourites[listingIdx]) || null;
   }
 }
