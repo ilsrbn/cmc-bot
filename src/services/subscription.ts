@@ -4,6 +4,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { SubscriptionRepository } from "@/repositories/subscription";
 
 import { ListingService } from "./listing";
+import { UserService } from "./user";
 
 export class CreateSubscriptionDTO {
   constructor(
@@ -12,7 +13,7 @@ export class CreateSubscriptionDTO {
     public initial: number,
     public target: number,
     public type: "price" | "holders" | "liquidity"
-  ) {}
+  ) { }
 }
 
 @Injectable()
@@ -21,8 +22,9 @@ export class SubscriptionService {
 
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
-    private readonly listingService: ListingService
-  ) {}
+    private readonly listingService: ListingService,
+    private readonly userService: UserService
+  ) { }
 
   async getSubscriptionById(id: number) {
     return await this.subscriptionRepository.getSubscriptionById(id);
@@ -44,7 +46,30 @@ export class SubscriptionService {
 
   async getGrouupedByUserSubscriptions() {
     const subscriptions = await this.getAllSubscriptions();
-    return _.groupBy(subscriptions, (subscription) => subscription.user_id);
+    const grouppedByUser = _.groupBy(
+      subscriptions,
+      (subscription) => subscription.user_id
+    );
+
+    const listings = await this.listingService.getAllListings();
+    const grouppedByListing = _.groupBy(
+      subscriptions,
+      (subscription) => subscription.listing_id
+    );
+
+    const allUsersAmount = await this.userService.getAllUsersAmount();
+
+    return {
+      users: {
+        active: Object.keys(grouppedByUser).length,
+        total: allUsersAmount,
+      },
+      subscriptions: subscriptions.length,
+      listings: {
+        active: Object.keys(grouppedByListing).length,
+        total: listings.length,
+      },
+    };
   }
 
   async getGrouppedSubscriptions() {

@@ -16,4 +16,8 @@ export class UserRepository {
   async createUser(user: NewUser) {
     return await db.insertInto("user").values(user).returningAll().execute();
   }
+
+  async getAllUsers() {
+    return await db.selectFrom("user").selectAll().execute();
+  }
 }

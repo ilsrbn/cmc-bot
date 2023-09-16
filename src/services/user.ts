@@ -7,7 +7,7 @@ class registerDTO {
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) { }
 
   async register(registerForm: registerDTO) {
     return await this.userRepository.createUser({ ...registerForm });
@@ -15,5 +15,10 @@ export class UserService {
 
   async getUser(id: number) {
     return await this.userRepository.getUserById(id);
+  }
+
+  async getAllUsersAmount() {
+    const users = await this.userRepository.getAllUsers();
+    return users.length;
   }
 }

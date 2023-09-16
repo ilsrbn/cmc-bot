@@ -89,6 +89,10 @@ export class ListingService {
     return await this.listingRepo.updateListing(listing);
   }
 
+  async getAllListings() {
+    return await this.listingRepo.getAllListings();
+  }
+
   private getListingType(url: string): ListingType {
     const splitted = url.split("/");
 
