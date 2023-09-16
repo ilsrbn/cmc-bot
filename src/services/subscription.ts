@@ -5,6 +5,7 @@ import { SubscriptionRepository } from "@/repositories/subscription";
 
 import { ListingService } from "./listing";
 import { UserService } from "./user";
+import { Listing } from "@/models/listing.model";
 
 export class CreateSubscriptionDTO {
   constructor(
@@ -66,6 +67,18 @@ export class SubscriptionService {
       },
       subscriptions: subscriptions.length,
       listings: {
+        data: Object.keys(grouppedByListing).map((listingId) => {
+          const subscription = grouppedByListing[listingId][0];
+          const data: Listing = {
+            price: subscription.price,
+            holders: subscription.holders,
+            liquidity: subscription.liquidity,
+            title: subscription.title,
+            url: subscription.url,
+            id: subscription.listing_id,
+          };
+          return data;
+        }),
         active: Object.keys(grouppedByListing).length,
         total: listings.length,
       },
