@@ -69,13 +69,14 @@ export class SubscriptionService {
       listings: {
         data: Object.keys(grouppedByListing).map((listingId) => {
           const subscription = grouppedByListing[listingId][0];
-          const data: Listing = {
+          const data: Listing & { subscriptions: number } = {
             price: subscription.price,
             holders: subscription.holders,
             liquidity: subscription.liquidity,
             title: subscription.title,
             url: subscription.url,
             id: subscription.listing_id,
+            subscriptions: grouppedByListing[listingId].length,
           };
           return data;
         }),
